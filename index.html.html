@@ -1,0 +1,821 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+    <title>Fugitives</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            background: #f5f5f7;
+            color: #1d1d1f;
+            height: 100vh;
+            overflow: hidden;
+        }
+
+        .app-container {
+            height: 100vh;
+            display: flex;
+            flex-direction: column;
+            background: white;
+        }
+
+        .screen {
+            display: none;
+            flex-direction: column;
+            height: 100%;
+            animation: slideIn 0.3s ease-out;
+        }
+
+        .screen.active {
+            display: flex;
+        }
+
+        @keyframes slideIn {
+            from { transform: translateX(100%); }
+            to { transform: translateX(0); }
+        }
+
+        .header {
+            background: #000;
+            color: white;
+            padding: 20px;
+            text-align: center;
+            font-size: 24px;
+            font-weight: 600;
+        }
+
+        .content {
+            flex: 1;
+            padding: 20px;
+            overflow-y: auto;
+            -webkit-overflow-scrolling: touch;
+        }
+
+        .user-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 15px;
+            margin-top: 40px;
+        }
+
+        .user-btn {
+            background: #f5f5f7;
+            border: 2px solid #000;
+            padding: 40px 20px;
+            font-size: 20px;
+            font-weight: 600;
+            border-radius: 12px;
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+
+        .user-btn:active {
+            transform: scale(0.95);
+            background: #000;
+            color: white;
+        }
+
+        .pin-pad {
+            margin-top: 30px;
+        }
+
+        .pin-display {
+            background: #f5f5f7;
+            padding: 20px;
+            font-size: 24px;
+            text-align: center;
+            border-radius: 12px;
+            margin-bottom: 20px;
+            letter-spacing: 10px;
+            min-height: 60px;
+        }
+
+        .pin-grid {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 10px;
+            max-width: 300px;
+            margin: 0 auto;
+        }
+
+        .pin-btn {
+            background: #000;
+            color: white;
+            border: none;
+            padding: 25px;
+            font-size: 20px;
+            font-weight: 600;
+            border-radius: 12px;
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+
+        .pin-btn:active {
+            transform: scale(0.95);
+            background: #333;
+        }
+
+        .pin-btn.clear {
+            grid-column: span 2;
+            background: #ff3b30;
+        }
+
+        .leaderboard {
+            background: #f5f5f7;
+            padding: 20px;
+            border-radius: 12px;
+            margin-bottom: 20px;
+        }
+
+        .leaderboard h3 {
+            margin-bottom: 15px;
+            font-size: 18px;
+        }
+
+        .leader-item {
+            display: flex;
+            align-items: center;
+            margin-bottom: 10px;
+        }
+
+        .leader-name {
+            width: 60px;
+            font-weight: 600;
+        }
+
+        .leader-bar {
+            flex: 1;
+            height: 30px;
+            background: #e0e0e0;
+            border-radius: 15px;
+            margin: 0 10px;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .leader-fill {
+            height: 100%;
+            background: #000;
+            border-radius: 15px;
+            transition: width 0.5s ease-out;
+            display: flex;
+            align-items: center;
+            justify-content: flex-end;
+            padding-right: 10px;
+            color: white;
+            font-weight: 600;
+        }
+
+        .task-section {
+            margin: 20px 0;
+        }
+
+        .task-section h3 {
+            margin-bottom: 15px;
+            font-size: 18px;
+        }
+
+        .task-card {
+            background: #f5f5f7;
+            padding: 15px;
+            border-radius: 12px;
+            margin-bottom: 10px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .task-info {
+            flex: 1;
+        }
+
+        .task-name {
+            font-weight: 600;
+            margin-bottom: 5px;
+        }
+
+        .task-meta {
+            font-size: 14px;
+            color: #666;
+        }
+
+        .task-btn {
+            background: #000;
+            color: white;
+            border: none;
+            padding: 10px 20px;
+            border-radius: 8px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+
+        .task-btn:active {
+            transform: scale(0.95);
+        }
+
+        .task-btn.complete {
+            background: #34c759;
+        }
+
+        .task-btn.claimed {
+            background: #666;
+            cursor: default;
+        }
+
+        .nav-bar {
+            display: flex;
+            background: #f5f5f7;
+            border-top: 1px solid #e0e0e0;
+        }
+
+        .nav-item {
+            flex: 1;
+            padding: 15px;
+            text-align: center;
+            cursor: pointer;
+            transition: background 0.2s;
+            font-size: 14px;
+            font-weight: 500;
+        }
+
+        .nav-item:active {
+            background: #e0e0e0;
+        }
+
+        .nav-item.active {
+            background: #000;
+            color: white;
+        }
+
+        .tabs {
+            display: flex;
+            background: #f5f5f7;
+            margin: -20px -20px 20px;
+            border-bottom: 1px solid #e0e0e0;
+        }
+
+        .tab {
+            flex: 1;
+            padding: 15px;
+            text-align: center;
+            cursor: pointer;
+            font-weight: 500;
+            transition: all 0.2s;
+        }
+
+        .tab.active {
+            background: #000;
+            color: white;
+        }
+
+        .empty-state {
+            text-align: center;
+            padding: 40px;
+            color: #666;
+        }
+
+        .confetti {
+            position: fixed;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            font-size: 60px;
+            animation: confetti 1s ease-out;
+            pointer-events: none;
+        }
+
+        @keyframes confetti {
+            0% { transform: translate(-50%, -50%) scale(0) rotate(0); opacity: 1; }
+            100% { transform: translate(-50%, -150%) scale(1.5) rotate(360deg); opacity: 0; }
+        }
+
+        .greeting {
+            font-size: 24px;
+            font-weight: 600;
+            margin-bottom: 20px;
+        }
+
+        .quick-info {
+            background: #f5f5f7;
+            padding: 15px;
+            border-radius: 12px;
+            margin-bottom: 15px;
+        }
+
+        .quick-info h4 {
+            font-size: 14px;
+            color: #666;
+            margin-bottom: 5px;
+        }
+
+        .quick-info p {
+            font-size: 18px;
+            font-weight: 600;
+        }
+
+        .main-action {
+            background: #000;
+            color: white;
+            border: none;
+            padding: 20px;
+            font-size: 18px;
+            font-weight: 600;
+            border-radius: 12px;
+            width: 100%;
+            cursor: pointer;
+            transition: all 0.2s;
+            margin-top: 20px;
+        }
+
+        .main-action:active {
+            transform: scale(0.98);
+        }
+    </style>
+</head>
+<body>
+    <div class="app-container">
+        <!-- Welcome Screen -->
+        <div class="screen active" id="welcomeScreen">
+            <div class="header">Fugitives</div>
+            <div class="content">
+                <h2 style="text-align: center; margin-top: 40px;">Who are you?</h2>
+                <div class="user-grid">
+                    <button class="user-btn" onclick="selectUser('TT')">TT</button>
+                    <button class="user-btn" onclick="selectUser('TM')">TM</button>
+                    <button class="user-btn" onclick="selectUser('SM')">SM</button>
+                    <button class="user-btn" onclick="selectUser('LS')">LS</button>
+                </div>
+            </div>
+        </div>
+
+        <!-- PIN Screen -->
+        <div class="screen" id="pinScreen">
+            <div class="header">Enter PIN</div>
+            <div class="content">
+                <div class="pin-pad">
+                    <div class="pin-display" id="pinDisplay">****</div>
+                    <div class="pin-grid">
+                        <button class="pin-btn" onclick="addPin('1')">1</button>
+                        <button class="pin-btn" onclick="addPin('2')">2</button>
+                        <button class="pin-btn" onclick="addPin('3')">3</button>
+                        <button class="pin-btn" onclick="addPin('4')">4</button>
+                        <button class="pin-btn" onclick="addPin('5')">5</button>
+                        <button class="pin-btn" onclick="addPin('6')">6</button>
+                        <button class="pin-btn" onclick="addPin('7')">7</button>
+                        <button class="pin-btn" onclick="addPin('8')">8</button>
+                        <button class="pin-btn" onclick="addPin('9')">9</button>
+                        <button class="pin-btn clear" onclick="clearPin()">Clear</button>
+                        <button class="pin-btn" onclick="addPin('0')">0</button>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Dashboard Screen -->
+        <div class="screen" id="dashboardScreen">
+            <div class="header">Fugitives</div>
+            <div class="content">
+                <div class="greeting" id="greeting">Hey!</div>
+                
+                <div class="leaderboard">
+                    <h3>Current Standings</h3>
+                    <div id="leaderboardContent"></div>
+                </div>
+
+                <div class="quick-info">
+                    <h4>Tonight's Cook</h4>
+                    <p id="tonightsCook">Loading...</p>
+                </div>
+
+                <div class="quick-info">
+                    <h4>Your Weekly Tasks</h4>
+                    <p id="weeklyTasksDue">Loading...</p>
+                </div>
+
+                <div class="quick-info">
+                    <h4>Your Monthly Tasks</h4>
+                    <p id="monthlyTasksDue">Loading...</p>
+                </div>
+
+                <button class="main-action" onclick="showScreen('choresScreen')">View All Chores</button>
+                
+                <div style="margin-top: 30px;">
+                    <h3>Next Week's Cooking Schedule</h3>
+                    <div id="cookingScheduleEdit" style="margin-top: 15px;">
+                        <div class="task-card" style="margin-bottom: 10px;">
+                            <div class="task-info">
+                                <div class="task-name">Monday</div>
+                            </div>
+                            <select id="cookMonday" class="task-btn" style="background: #f5f5f7; color: #000; width: 80px;" onchange="updateCookingSchedule()">
+                                <option value="TT">TT</option>
+                                <option value="TM">TM</option>
+                                <option value="SM">SM</option>
+                                <option value="LS">LS</option>
+                            </select>
+                        </div>
+                        <div class="task-card" style="margin-bottom: 10px;">
+                            <div class="task-info">
+                                <div class="task-name">Tuesday</div>
+                            </div>
+                            <select id="cookTuesday" class="task-btn" style="background: #f5f5f7; color: #000; width: 80px;" onchange="updateCookingSchedule()">
+                                <option value="TT">TT</option>
+                                <option value="TM">TM</option>
+                                <option value="SM">SM</option>
+                                <option value="LS">LS</option>
+                            </select>
+                        </div>
+                        <div class="task-card" style="margin-bottom: 10px;">
+                            <div class="task-info">
+                                <div class="task-name">Wednesday</div>
+                            </div>
+                            <select id="cookWednesday" class="task-btn" style="background: #f5f5f7; color: #000; width: 80px;" onchange="updateCookingSchedule()">
+                                <option value="TT">TT</option>
+                                <option value="TM">TM</option>
+                                <option value="SM">SM</option>
+                                <option value="LS">LS</option>
+                            </select>
+                        </div>
+                        <div class="task-card" style="margin-bottom: 10px;">
+                            <div class="task-info">
+                                <div class="task-name">Thursday</div>
+                            </div>
+                            <select id="cookThursday" class="task-btn" style="background: #f5f5f7; color: #000; width: 80px;" onchange="updateCookingSchedule()">
+                                <option value="TT">TT</option>
+                                <option value="TM">TM</option>
+                                <option value="SM">SM</option>
+                                <option value="LS">LS</option>
+                            </select>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <div class="nav-bar">
+                <div class="nav-item active" onclick="showScreen('dashboardScreen')">Home</div>
+                <div class="nav-item" onclick="showScreen('choresScreen')">Chores</div>
+                <div class="nav-item" onclick="showScreen('leaderboardScreen')">Stats</div>
+                <div class="nav-item" onclick="logout()">Logout</div>
+            </div>
+        </div>
+
+        <!-- Chores Screen -->
+        <div class="screen" id="choresScreen">
+            <div class="header">Chores</div>
+            <div class="content">
+                <div class="tabs">
+                    <div class="tab active" onclick="showChoreTab('my')">My Tasks</div>
+                    <div class="tab" onclick="showChoreTab('all')">All Tasks</div>
+                </div>
+                <div id="choresContent"></div>
+            </div>
+            <div class="nav-bar">
+                <div class="nav-item" onclick="showScreen('dashboardScreen')">Home</div>
+                <div class="nav-item active" onclick="showScreen('choresScreen')">Chores</div>
+                <div class="nav-item" onclick="showScreen('leaderboardScreen')">Stats</div>
+                <div class="nav-item" onclick="logout()">Logout</div>
+            </div>
+        </div>
+
+        <!-- Stats Screen -->
+        <div class="screen" id="leaderboardScreen">
+            <div class="header">Stats</div>
+            <div class="content">
+                <div class="leaderboard">
+                    <h3>This Month's Leaderboard</h3>
+                    <div id="statsLeaderboard"></div>
+                </div>
+                <div style="margin-top: 30px; text-align: center;">
+                    <h3>Housemate of the Month</h3>
+                    <div style="font-size: 48px; margin: 20px 0;">👑</div>
+                    <div id="housemateOfMonth" style="font-size: 24px; font-weight: 600;"></div>
+                </div>
+            </div>
+            <div class="nav-bar">
+                <div class="nav-item" onclick="showScreen('dashboardScreen')">Home</div>
+                <div class="nav-item" onclick="showScreen('choresScreen')">Chores</div>
+                <div class="nav-item active" onclick="showScreen('leaderboardScreen')">Stats</div>
+                <div class="nav-item" onclick="logout()">Logout</div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // App State
+        let currentUser = null;
+        let currentPin = '';
+        let selectedUser = '';
+        let activeTab = 'my';
+
+        // Initial Data
+        const users = {
+            'TT': { name: 'TT', pin: '1234', points: 0 },
+            'TM': { name: 'TM', pin: '1234', points: 0 },
+            'SM': { name: 'SM', pin: '1234', points: 0 },
+            'LS': { name: 'LS', pin: '1234', points: 0 }
+        };
+
+        const chores = [
+            // Weekly tasks
+            { id: 1, name: 'Kitchen - Counters & Stovetop', frequency: 'Weekly', assignedTo: 'TT', completed: false, dueDay: 'Sunday' },
+            { id: 2, name: 'Kitchen - Sink & Floors', frequency: 'Weekly', assignedTo: 'TM', completed: false, dueDay: 'Sunday' },
+            { id: 3, name: 'Guest Toilet Clean', frequency: 'Weekly', assignedTo: 'SM', completed: false, dueDay: 'Sunday' },
+            { id: 4, name: 'Vacuum Downstairs', frequency: 'Weekly', assignedTo: 'LS', completed: false, dueDay: 'Sunday' },
+            { id: 5, name: 'Vacuum Upstairs', frequency: 'Weekly', assignedTo: 'TT', completed: false, dueDay: 'Sunday' },
+            { id: 6, name: 'Mop Hard Floors', frequency: 'Weekly', assignedTo: 'TM', completed: false, dueDay: 'Sunday' },
+            { id: 7, name: 'Bins Out', frequency: 'Weekly', assignedTo: 'SM', completed: false, dueDay: 'Tuesday Night', special: true },
+            { id: 8, name: 'Bins In', frequency: 'Weekly', assignedTo: 'SM', completed: false, dueDay: 'Wednesday', special: true },
+            { id: 9, name: 'Clean the 3 Kitchen Bins', frequency: 'Weekly', assignedTo: 'LS', completed: false, dueDay: 'Sunday' },
+            
+            // Monthly tasks
+            { id: 10, name: 'Oven Deep Clean', frequency: 'Monthly', assignedTo: 'LS', completed: false, dueDay: '1st' },
+            { id: 11, name: 'Windows - Downstairs', frequency: 'Monthly', assignedTo: 'TT', completed: false, dueDay: '1st' },
+            { id: 12, name: 'Windows - Upstairs', frequency: 'Monthly', assignedTo: 'TM', completed: false, dueDay: '1st' },
+            { id: 13, name: 'Garage Tidy', frequency: 'Monthly', assignedTo: 'SM', completed: false, dueDay: '1st' },
+            { id: 14, name: 'Lawns & Edges', frequency: 'Monthly', assignedTo: 'SM', completed: false, dueDay: '1st', special: true },
+            { id: 15, name: 'TT/TM Bathroom - Mirrors & Shower', frequency: 'Monthly', assignedTo: 'TT/TM', completed: false, dueDay: '1st' },
+            { id: 16, name: 'SM Bathroom - Mirrors & Shower', frequency: 'Monthly', assignedTo: 'SM', completed: false, dueDay: '1st' },
+            { id: 17, name: 'LS Bathroom - Mirrors & Shower', frequency: 'Monthly', assignedTo: 'LS', completed: false, dueDay: '1st' },
+            
+            // Private spaces
+            { id: 18, name: 'TT/TM Bedroom & Bathroom', frequency: 'Weekly', assignedTo: 'TT/TM', completed: false, dueDay: 'Sunday', private: true },
+            { id: 19, name: 'SM Bedroom & Bathroom', frequency: 'Weekly', assignedTo: 'SM', completed: false, dueDay: 'Sunday', private: true },
+            { id: 20, name: 'LS Bedroom & Bathroom', frequency: 'Weekly', assignedTo: 'LS', completed: false, dueDay: 'Sunday', private: true }
+        ];
+
+        let cookingSchedule = {
+            'Monday': 'TT',
+            'Tuesday': 'TM',
+            'Wednesday': 'SM',
+            'Thursday': 'LS'
+        };
+
+        // Load saved data
+        function loadData() {
+            const savedUsers = localStorage.getItem('fugitives_users');
+            const savedChores = localStorage.getItem('fugitives_chores');
+            const savedCooking = localStorage.getItem('fugitives_cooking');
+            
+            if (savedUsers) {
+                Object.assign(users, JSON.parse(savedUsers));
+            }
+            if (savedChores) {
+                chores.length = 0;
+                chores.push(...JSON.parse(savedChores));
+            }
+            if (savedCooking) {
+                Object.assign(cookingSchedule, JSON.parse(savedCooking));
+            }
+        }
+
+        // Save data
+        function saveData() {
+            localStorage.setItem('fugitives_users', JSON.stringify(users));
+            localStorage.setItem('fugitives_chores', JSON.stringify(chores));
+            localStorage.setItem('fugitives_cooking', JSON.stringify(cookingSchedule));
+        }
+
+        // Initialize app
+        loadData();
+
+        // Screen Management
+        function showScreen(screenId) {
+            document.querySelectorAll('.screen').forEach(s => s.classList.remove('active'));
+            document.getElementById(screenId).classList.add('active');
+            
+            if (screenId === 'dashboardScreen') {
+                updateDashboard();
+            } else if (screenId === 'choresScreen') {
+                updateChores();
+            } else if (screenId === 'leaderboardScreen') {
+                updateStatsLeaderboard();
+            }
+        }
+
+        // User Selection
+        function selectUser(user) {
+            selectedUser = user;
+            showScreen('pinScreen');
+            currentPin = '';
+            document.getElementById('pinDisplay').textContent = '****';
+        }
+
+        // PIN Management
+        function addPin(digit) {
+            if (currentPin.length < 4) {
+                currentPin += digit;
+                let display = '*'.repeat(currentPin.length) + '*'.repeat(4 - currentPin.length);
+                document.getElementById('pinDisplay').textContent = display;
+                
+                if (currentPin.length === 4) {
+                    setTimeout(() => checkPin(), 200);
+                }
+            }
+        }
+
+        function clearPin() {
+            currentPin = '';
+            document.getElementById('pinDisplay').textContent = '****';
+        }
+
+        function checkPin() {
+            if (users[selectedUser].pin === currentPin) {
+                currentUser = selectedUser;
+                showScreen('dashboardScreen');
+            } else {
+                document.getElementById('pinDisplay').style.color = 'red';
+                setTimeout(() => {
+                    document.getElementById('pinDisplay').style.color = '';
+                    clearPin();
+                }, 500);
+            }
+        }
+
+        // Dashboard Updates
+        function updateDashboard() {
+            document.getElementById('greeting').textContent = `Hey ${currentUser}!`;
+            
+            // Update leaderboard
+            updateLeaderboard();
+            
+            // Tonight's cook
+            const today = new Date().toLocaleDateString('en-US', { weekday: 'long' });
+            const cook = cookingSchedule[today] || 'Weekend - Flexible';
+            document.getElementById('tonightsCook').textContent = cook;
+            
+            // Tasks due - separated by frequency
+            const myTasks = chores.filter(c => 
+                (c.assignedTo === currentUser || c.assignedTo.includes(currentUser)) && 
+                !c.completed
+            );
+            
+            const weeklyTasks = myTasks.filter(t => t.frequency === 'Weekly');
+            const monthlyTasks = myTasks.filter(t => t.frequency === 'Monthly');
+            
+            document.getElementById('weeklyTasksDue').textContent = weeklyTasks.length === 0 ? 
+                '✓ All done!' : `${weeklyTasks.length} tasks`;
+            
+            document.getElementById('monthlyTasksDue').textContent = monthlyTasks.length === 0 ? 
+                '✓ All done!' : `${monthlyTasks.length} tasks`;
+            
+            // Update cooking schedule dropdowns
+            document.getElementById('cookMonday').value = cookingSchedule.Monday;
+            document.getElementById('cookTuesday').value = cookingSchedule.Tuesday;
+            document.getElementById('cookWednesday').value = cookingSchedule.Wednesday;
+            document.getElementById('cookThursday').value = cookingSchedule.Thursday;
+        }
+
+        function updateCookingSchedule() {
+            cookingSchedule.Monday = document.getElementById('cookMonday').value;
+            cookingSchedule.Tuesday = document.getElementById('cookTuesday').value;
+            cookingSchedule.Wednesday = document.getElementById('cookWednesday').value;
+            cookingSchedule.Thursday = document.getElementById('cookThursday').value;
+            saveData();
+            
+            // Update tonight's cook display
+            const today = new Date().toLocaleDateString('en-US', { weekday: 'long' });
+            const cook = cookingSchedule[today] || 'Weekend - Flexible';
+            document.getElementById('tonightsCook').textContent = cook;
+        }
+
+        function updateLeaderboard() {
+            const leaderboard = document.getElementById('leaderboardContent');
+            const sortedUsers = Object.entries(users)
+                .sort(([,a], [,b]) => b.points - a.points);
+            
+            const maxPoints = Math.max(...Object.values(users).map(u => u.points), 1);
+            
+            leaderboard.innerHTML = sortedUsers.map(([name, user]) => `
+                <div class="leader-item">
+                    <div class="leader-name">${name}</div>
+                    <div class="leader-bar">
+                        <div class="leader-fill" style="width: ${(user.points / maxPoints) * 100}%">
+                            ${user.points}
+                        </div>
+                    </div>
+                </div>
+            `).join('');
+        }
+
+        // Chores Management
+        function showChoreTab(tab) {
+            activeTab = tab;
+            document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
+            event.target.classList.add('active');
+            updateChores();
+        }
+
+        function updateChores() {
+            const content = document.getElementById('choresContent');
+            let choresToShow = chores;
+            
+            if (activeTab === 'my') {
+                choresToShow = chores.filter(c => 
+                    c.assignedTo === currentUser || c.assignedTo.includes(currentUser)
+                );
+            }
+            
+            if (choresToShow.length === 0) {
+                content.innerHTML = '<div class="empty-state">No tasks to show</div>';
+                return;
+            }
+            
+            const choresByFrequency = {
+                'Weekly': choresToShow.filter(c => c.frequency === 'Weekly'),
+                'Monthly': choresToShow.filter(c => c.frequency === 'Monthly')
+            };
+            
+            content.innerHTML = Object.entries(choresByFrequency).map(([freq, tasks]) => {
+                if (tasks.length === 0) return '';
+                
+                return `
+                    <div class="task-section">
+                        <h3>${freq} Tasks</h3>
+                        ${tasks.map(task => `
+                            <div class="task-card">
+                                <div class="task-info">
+                                    <div class="task-name">${task.name}</div>
+                                    <div class="task-meta">
+                                        ${task.dueDay} • ${task.assignedTo}
+                                    </div>
+                                </div>
+                                ${task.completed ? 
+                                    '<button class="task-btn claimed">Done ✓</button>' :
+                                    `<button class="task-btn complete" onclick="completeTask(${task.id})">Complete</button>`
+                                }
+                            </div>
+                        `).join('')}
+                    </div>
+                `;
+            }).join('');
+        }
+
+        function completeTask(taskId) {
+            const task = chores.find(c => c.id === taskId);
+            if (task && !task.completed) {
+                task.completed = true;
+                users[currentUser].points += 10;
+                saveData();
+                
+                // Show confetti
+                const confetti = document.createElement('div');
+                confetti.className = 'confetti';
+                confetti.textContent = '🎉';
+                document.body.appendChild(confetti);
+                setTimeout(() => confetti.remove(), 1000);
+                
+                updateChores();
+                updateLeaderboard();
+            }
+        }
+
+        // Stats Screen
+        function updateStatsLeaderboard() {
+            const leaderboard = document.getElementById('statsLeaderboard');
+            const sortedUsers = Object.entries(users)
+                .sort(([,a], [,b]) => b.points - a.points);
+            
+            const maxPoints = Math.max(...Object.values(users).map(u => u.points), 1);
+            
+            leaderboard.innerHTML = sortedUsers.map(([name, user], index) => `
+                <div class="leader-item">
+                    <div class="leader-name">${index === 0 ? '👑 ' : ''}${name}</div>
+                    <div class="leader-bar">
+                        <div class="leader-fill" style="width: ${(user.points / maxPoints) * 100}%">
+                            ${user.points}
+                        </div>
+                    </div>
+                </div>
+            `).join('');
+            
+            document.getElementById('housemateOfMonth').textContent = sortedUsers[0][0];
+        }
+
+        // Logout
+        function logout() {
+            currentUser = null;
+            showScreen('welcomeScreen');
+        }
+
+        // Weekly rotation (runs on page load for demo)
+        function rotateWeeklyChores() {
+            const today = new Date().getDay();
+            if (today === 1) { // Monday
+                // Simple rotation logic - in real app would be more sophisticated
+                console.log('Monday rotation would happen here');
+            }
+        }
+
+        // Check for Monday rotation
+        rotateWeeklyChores();
+    </script>
+</body>
+</html>
