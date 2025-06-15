@@ -65,6 +65,8 @@
             padding: 20px;
             overflow-y: auto;
             -webkit-overflow-scrolling: touch;
+            padding-bottom: 20px;
+            min-height: 0;
         }
 
         .user-grid {
@@ -243,15 +245,18 @@
             display: flex;
             background: #f5f5f7;
             border-top: 1px solid #e0e0e0;
+            position: relative;
+            flex-shrink: 0;
+            padding-bottom: env(safe-area-inset-bottom);
         }
 
         .nav-item {
             flex: 1;
-            padding: 15px;
+            padding: 15px 5px;
             text-align: center;
             cursor: pointer;
             transition: background 0.2s;
-            font-size: 14px;
+            font-size: 12px;
             font-weight: 500;
         }
 
@@ -347,6 +352,138 @@
         .main-action:active {
             transform: scale(0.98);
         }
+
+        .quick-actions {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 10px;
+            margin: 20px 0;
+        }
+
+        .quick-btn {
+            background: #f5f5f7;
+            border: 2px solid #000;
+            padding: 15px;
+            font-size: 14px;
+            font-weight: 600;
+            border-radius: 8px;
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+
+        .quick-btn:active {
+            transform: scale(0.95);
+            background: #000;
+            color: white;
+        }
+
+        .shopping-input {
+            display: flex;
+            gap: 10px;
+            margin-bottom: 20px;
+        }
+
+        .shopping-input input {
+            flex: 1;
+            padding: 15px;
+            font-size: 16px;
+            border: 2px solid #000;
+            border-radius: 8px;
+            font-family: inherit;
+        }
+
+        .shopping-item {
+            background: #f5f5f7;
+            padding: 15px;
+            border-radius: 12px;
+            margin-bottom: 10px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .shopping-item.checked {
+            opacity: 0.5;
+            text-decoration: line-through;
+        }
+
+        .event-input {
+            margin-bottom: 20px;
+        }
+
+        .event-input input, .event-input select {
+            width: 100%;
+            padding: 15px;
+            font-size: 16px;
+            border: 2px solid #000;
+            border-radius: 8px;
+            margin-bottom: 10px;
+            font-family: inherit;
+        }
+
+        .event-card {
+            background: #f5f5f7;
+            padding: 15px;
+            border-radius: 12px;
+            margin-bottom: 10px;
+        }
+
+        .event-date {
+            font-weight: 600;
+            margin-bottom: 5px;
+        }
+
+        .event-details {
+            font-size: 14px;
+            color: #666;
+        }
+
+        .chur-card {
+            background: #ffd60a;
+            padding: 15px;
+            border-radius: 12px;
+            margin-bottom: 10px;
+            border: 2px solid #000;
+        }
+
+        .chur-from {
+            font-weight: 600;
+            margin-bottom: 5px;
+        }
+
+        .chur-message {
+            font-style: italic;
+        }
+
+        .chur-input {
+            margin-bottom: 20px;
+        }
+
+        .chur-input select, .chur-input textarea {
+            width: 100%;
+            padding: 15px;
+            font-size: 16px;
+            border: 2px solid #000;
+            border-radius: 8px;
+            margin-bottom: 10px;
+            font-family: inherit;
+        }
+
+        .market-card {
+            background: #f5f5f7;
+            padding: 15px;
+            border-radius: 12px;
+            margin-bottom: 10px;
+            border: 2px solid #ff3b30;
+        }
+
+        .market-info {
+            margin-bottom: 10px;
+        }
+
+        .scroll-content {
+            padding-bottom: 100px;
+        }
     </style>
 </head>
 <body>
@@ -391,7 +528,7 @@
         <!-- Dashboard Screen -->
         <div class="screen" id="dashboardScreen">
             <div class="header">Fugitives</div>
-            <div class="content">
+            <div class="content scroll-content">
                 <div class="greeting" id="greeting">Hey!</div>
                 
                 <div class="leaderboard">
@@ -414,10 +551,22 @@
                     <p id="monthlyTasksDue">Loading...</p>
                 </div>
 
-                <button class="main-action" onclick="showScreen('choresScreen')">View All Chores</button>
+                <div class="quick-actions">
+                    <button class="quick-btn" onclick="quickAddEvent('WFH')">WFH Tomorrow</button>
+                    <button class="quick-btn" onclick="quickAddEvent('Guest')">Guest Tonight</button>
+                    <button class="quick-btn" onclick="quickAddEvent('Out')">Out for Dinner</button>
+                    <button class="quick-btn" onclick="showScreen('churScreen')">Send Chur! 🤙</button>
+                </div>
+
+                <div class="quick-info" style="margin-top: 20px;">
+                    <h4>Today's Events</h4>
+                    <div id="todaysEvents">Loading...</div>
+                </div>
+
+                <div id="recentChurs" style="margin-top: 20px;"></div>
                 
                 <div style="margin-top: 30px;">
-                    <h3>Next Week's Cooking Schedule</h3>
+                    <h3>This Week's Cooking Schedule</h3>
                     <div id="cookingScheduleEdit" style="margin-top: 15px;">
                         <div class="task-card" style="margin-bottom: 10px;">
                             <div class="task-info">
@@ -469,8 +618,9 @@
             <div class="nav-bar">
                 <div class="nav-item active" onclick="showScreen('dashboardScreen')">Home</div>
                 <div class="nav-item" onclick="showScreen('choresScreen')">Chores</div>
-                <div class="nav-item" onclick="showScreen('leaderboardScreen')">Stats</div>
-                <div class="nav-item" onclick="logout()">Logout</div>
+                <div class="nav-item" onclick="showScreen('shoppingScreen')">Shopping</div>
+                <div class="nav-item" onclick="showScreen('eventsScreen')">Events</div>
+                <div class="nav-item" onclick="showScreen('statsScreen')">Stats</div>
             </div>
         </div>
 
@@ -481,19 +631,89 @@
                 <div class="tabs">
                     <div class="tab active" onclick="showChoreTab('my')">My Tasks</div>
                     <div class="tab" onclick="showChoreTab('all')">All Tasks</div>
+                    <div class="tab" onclick="showChoreTab('market')">Market</div>
                 </div>
                 <div id="choresContent"></div>
             </div>
             <div class="nav-bar">
                 <div class="nav-item" onclick="showScreen('dashboardScreen')">Home</div>
                 <div class="nav-item active" onclick="showScreen('choresScreen')">Chores</div>
-                <div class="nav-item" onclick="showScreen('leaderboardScreen')">Stats</div>
-                <div class="nav-item" onclick="logout()">Logout</div>
+                <div class="nav-item" onclick="showScreen('shoppingScreen')">Shopping</div>
+                <div class="nav-item" onclick="showScreen('eventsScreen')">Events</div>
+                <div class="nav-item" onclick="showScreen('statsScreen')">Stats</div>
+            </div>
+        </div>
+
+        <!-- Shopping Screen -->
+        <div class="screen" id="shoppingScreen">
+            <div class="header">Shopping List</div>
+            <div class="content">
+                <div class="shopping-input">
+                    <input type="text" id="shoppingInput" placeholder="Add item..." onkeypress="if(event.key==='Enter')addShoppingItem()">
+                    <button class="task-btn" onclick="addShoppingItem()">Add</button>
+                </div>
+                <div id="shoppingList"></div>
+            </div>
+            <div class="nav-bar">
+                <div class="nav-item" onclick="showScreen('dashboardScreen')">Home</div>
+                <div class="nav-item" onclick="showScreen('choresScreen')">Chores</div>
+                <div class="nav-item active" onclick="showScreen('shoppingScreen')">Shopping</div>
+                <div class="nav-item" onclick="showScreen('eventsScreen')">Events</div>
+                <div class="nav-item" onclick="showScreen('statsScreen')">Stats</div>
+            </div>
+        </div>
+
+        <!-- Events Screen -->
+        <div class="screen" id="eventsScreen">
+            <div class="header">House Events</div>
+            <div class="content">
+                <div class="event-input">
+                    <input type="date" id="eventDate">
+                    <select id="eventType">
+                        <option value="">Select type...</option>
+                        <option value="WFH">Working from Home</option>
+                        <option value="Guest">Guest Staying</option>
+                        <option value="Out">Out for Dinner</option>
+                        <option value="Event">House Event</option>
+                        <option value="Away">Away</option>
+                    </select>
+                    <input type="text" id="eventDetails" placeholder="Details (optional)">
+                    <button class="main-action" onclick="addEvent()">Add Event</button>
+                </div>
+                <h3>Upcoming Events</h3>
+                <div id="eventsList"></div>
+            </div>
+            <div class="nav-bar">
+                <div class="nav-item" onclick="showScreen('dashboardScreen')">Home</div>
+                <div class="nav-item" onclick="showScreen('choresScreen')">Chores</div>
+                <div class="nav-item" onclick="showScreen('shoppingScreen')">Shopping</div>
+                <div class="nav-item active" onclick="showScreen('eventsScreen')">Events</div>
+                <div class="nav-item" onclick="showScreen('statsScreen')">Stats</div>
+            </div>
+        </div>
+
+        <!-- Chur Screen -->
+        <div class="screen" id="churScreen">
+            <div class="header">Send a Chur! 🤙</div>
+            <div class="content">
+                <div class="chur-input">
+                    <h3>Who deserves a Chur?</h3>
+                    <select id="churRecipient">
+                        <option value="">Select housemate...</option>
+                        <option value="TT">TT</option>
+                        <option value="TM">TM</option>
+                        <option value="SM">SM</option>
+                        <option value="LS">LS</option>
+                    </select>
+                    <textarea id="churMessage" placeholder="Add a message (optional)..." rows="3"></textarea>
+                    <button class="main-action" onclick="sendChur()">Send Chur! 🤙</button>
+                </div>
+                <button class="task-btn" onclick="showScreen('dashboardScreen')">Back to Dashboard</button>
             </div>
         </div>
 
         <!-- Stats Screen -->
-        <div class="screen" id="leaderboardScreen">
+        <div class="screen" id="statsScreen">
             <div class="header">Stats</div>
             <div class="content">
                 <div class="leaderboard">
@@ -505,12 +725,17 @@
                     <div style="font-size: 48px; margin: 20px 0;">👑</div>
                     <div id="housemateOfMonth" style="font-size: 24px; font-weight: 600;"></div>
                 </div>
+                <div style="margin-top: 30px;">
+                    <h3>Recent Churs</h3>
+                    <div id="allChurs"></div>
+                </div>
             </div>
             <div class="nav-bar">
                 <div class="nav-item" onclick="showScreen('dashboardScreen')">Home</div>
                 <div class="nav-item" onclick="showScreen('choresScreen')">Chores</div>
-                <div class="nav-item active" onclick="showScreen('leaderboardScreen')">Stats</div>
-                <div class="nav-item" onclick="logout()">Logout</div>
+                <div class="nav-item" onclick="showScreen('shoppingScreen')">Shopping</div>
+                <div class="nav-item" onclick="showScreen('eventsScreen')">Events</div>
+                <div class="nav-item active" onclick="showScreen('statsScreen')">Stats</div>
             </div>
         </div>
     </div>
@@ -565,11 +790,20 @@
             'Thursday': 'LS'
         };
 
+        let shoppingList = [];
+        let events = [];
+        let churs = [];
+        let choreMarket = [];
+
         // Load saved data
         function loadData() {
             const savedUsers = localStorage.getItem('fugitives_users');
             const savedChores = localStorage.getItem('fugitives_chores');
             const savedCooking = localStorage.getItem('fugitives_cooking');
+            const savedShopping = localStorage.getItem('fugitives_shopping');
+            const savedEvents = localStorage.getItem('fugitives_events');
+            const savedChurs = localStorage.getItem('fugitives_churs');
+            const savedMarket = localStorage.getItem('fugitives_market');
             
             if (savedUsers) {
                 Object.assign(users, JSON.parse(savedUsers));
@@ -581,6 +815,18 @@
             if (savedCooking) {
                 Object.assign(cookingSchedule, JSON.parse(savedCooking));
             }
+            if (savedShopping) {
+                shoppingList = JSON.parse(savedShopping);
+            }
+            if (savedEvents) {
+                events = JSON.parse(savedEvents);
+            }
+            if (savedChurs) {
+                churs = JSON.parse(savedChurs);
+            }
+            if (savedMarket) {
+                choreMarket = JSON.parse(savedMarket);
+            }
         }
 
         // Save data
@@ -588,22 +834,33 @@
             localStorage.setItem('fugitives_users', JSON.stringify(users));
             localStorage.setItem('fugitives_chores', JSON.stringify(chores));
             localStorage.setItem('fugitives_cooking', JSON.stringify(cookingSchedule));
+            localStorage.setItem('fugitives_shopping', JSON.stringify(shoppingList));
+            localStorage.setItem('fugitives_events', JSON.stringify(events));
+            localStorage.setItem('fugitives_churs', JSON.stringify(churs));
+            localStorage.setItem('fugitives_market', JSON.stringify(choreMarket));
         }
 
         // Initialize app
         loadData();
+        cleanupOldEvents();
 
         // Screen Management
         function showScreen(screenId) {
             document.querySelectorAll('.screen').forEach(s => s.classList.remove('active'));
             document.getElementById(screenId).classList.add('active');
             
+            // Update nav bar
+            document.querySelectorAll('.nav-item').forEach(item => item.classList.remove('active'));
             if (screenId === 'dashboardScreen') {
                 updateDashboard();
             } else if (screenId === 'choresScreen') {
                 updateChores();
-            } else if (screenId === 'leaderboardScreen') {
+            } else if (screenId === 'statsScreen') {
                 updateStatsLeaderboard();
+            } else if (screenId === 'shoppingScreen') {
+                updateShoppingList();
+            } else if (screenId === 'eventsScreen') {
+                updateEventsList();
             }
         }
 
@@ -673,11 +930,38 @@
             document.getElementById('monthlyTasksDue').textContent = monthlyTasks.length === 0 ? 
                 '✓ All done!' : `${monthlyTasks.length} tasks`;
             
+            // Today's events
+            updateTodaysEvents();
+            
             // Update cooking schedule dropdowns
             document.getElementById('cookMonday').value = cookingSchedule.Monday;
             document.getElementById('cookTuesday').value = cookingSchedule.Tuesday;
             document.getElementById('cookWednesday').value = cookingSchedule.Wednesday;
             document.getElementById('cookThursday').value = cookingSchedule.Thursday;
+            
+            // Show recent churs (24 hours)
+            updateRecentChurs();
+        }
+
+        function updateTodaysEvents() {
+            const todayDiv = document.getElementById('todaysEvents');
+            const today = new Date();
+            today.setHours(0, 0, 0, 0);
+            
+            const todaysEvents = events.filter(event => {
+                const eventDate = new Date(event.date);
+                eventDate.setHours(0, 0, 0, 0);
+                return eventDate.getTime() === today.getTime();
+            });
+            
+            if (todaysEvents.length === 0) {
+                todayDiv.textContent = 'No events today';
+                return;
+            }
+            
+            todayDiv.innerHTML = todaysEvents.map(event => 
+                `${event.person} - ${event.type} ${event.details ? `(${event.details})` : ''}`
+            ).join('<br>');
         }
 
         function updateCookingSchedule() {
@@ -722,6 +1006,12 @@
 
         function updateChores() {
             const content = document.getElementById('choresContent');
+            
+            if (activeTab === 'market') {
+                showChoreMarket();
+                return;
+            }
+            
             let choresToShow = chores;
             
             if (activeTab === 'my') {
@@ -756,7 +1046,11 @@
                                 </div>
                                 ${task.completed ? 
                                     '<button class="task-btn claimed">Done ✓</button>' :
-                                    `<button class="task-btn complete" onclick="completeTask(${task.id})">Complete</button>`
+                                    `<div>
+                                        <button class="task-btn complete" onclick="completeTask(${task.id})">Complete</button>
+                                        ${task.assignedTo === currentUser || task.assignedTo.includes(currentUser) ? 
+                                            `<button class="task-btn" style="background: #ff3b30; margin-left: 5px;" onclick="postToMarket(${task.id})">Post</button>` : ''}
+                                    </div>`
                                 }
                             </div>
                         `).join('')}
@@ -770,6 +1064,10 @@
             if (task && !task.completed) {
                 task.completed = true;
                 users[currentUser].points += 10;
+                
+                // Remove from market if it was there
+                choreMarket = choreMarket.filter(m => m.choreId !== taskId);
+                
                 saveData();
                 
                 // Show confetti
@@ -782,6 +1080,288 @@
                 updateChores();
                 updateLeaderboard();
             }
+        }
+
+        // Chore Market
+        function postToMarket(choreId) {
+            const chore = chores.find(c => c.id === choreId);
+            if (chore && !choreMarket.find(m => m.choreId === choreId)) {
+                choreMarket.push({
+                    choreId: choreId,
+                    originalOwner: currentUser,
+                    postedDate: new Date().toISOString()
+                });
+                saveData();
+                showChoreTab('market');
+            }
+        }
+
+        function showChoreMarket() {
+            const content = document.getElementById('choresContent');
+            
+            if (choreMarket.length === 0) {
+                content.innerHTML = '<div class="empty-state">No chores in the market</div>';
+                return;
+            }
+            
+            content.innerHTML = `
+                <div class="task-section">
+                    <h3>Available Chores</h3>
+                    ${choreMarket.map(market => {
+                        const chore = chores.find(c => c.id === market.choreId);
+                        if (!chore || chore.completed) return '';
+                        
+                        return `
+                            <div class="market-card">
+                                <div class="market-info">
+                                    <div class="task-name">${chore.name}</div>
+                                    <div class="task-meta">
+                                        Posted by ${market.originalOwner} • ${chore.frequency} • ${chore.dueDay}
+                                    </div>
+                                </div>
+                                ${market.originalOwner !== currentUser ? 
+                                    `<button class="task-btn" style="background: #34c759;" onclick="claimFromMarket(${market.choreId})">Claim</button>` :
+                                    `<button class="task-btn" style="background: #ff3b30;" onclick="removeFromMarket(${market.choreId})">Remove</button>`
+                                }
+                            </div>
+                        `;
+                    }).join('')}
+                </div>
+            `;
+        }
+
+        function claimFromMarket(choreId) {
+            const chore = chores.find(c => c.id === choreId);
+            const market = choreMarket.find(m => m.choreId === choreId);
+            
+            if (chore && market) {
+                chore.assignedTo = currentUser;
+                choreMarket = choreMarket.filter(m => m.choreId !== choreId);
+                saveData();
+                updateChores();
+            }
+        }
+
+        function removeFromMarket(choreId) {
+            choreMarket = choreMarket.filter(m => m.choreId !== choreId);
+            saveData();
+            updateChores();
+        }
+
+        // Shopping List
+        function updateShoppingList() {
+            const listDiv = document.getElementById('shoppingList');
+            
+            if (shoppingList.length === 0) {
+                listDiv.innerHTML = '<div class="empty-state">Shopping list is empty</div>';
+                return;
+            }
+            
+            listDiv.innerHTML = shoppingList.map((item, index) => `
+                <div class="shopping-item ${item.checked ? 'checked' : ''}">
+                    <div>
+                        <div class="task-name">${item.name}</div>
+                        ${item.checked ? `<div class="task-meta">Bought by ${item.boughtBy}</div>` : ''}
+                    </div>
+                    ${item.checked ? 
+                        `<button class="task-btn claimed">✓</button>` :
+                        `<button class="task-btn complete" onclick="checkShoppingItem(${index})">Got it!</button>`
+                    }
+                </div>
+            `).join('');
+        }
+
+        function addShoppingItem() {
+            const input = document.getElementById('shoppingInput');
+            const item = input.value.trim();
+            
+            if (item) {
+                shoppingList.push({
+                    name: item,
+                    addedBy: currentUser,
+                    checked: false,
+                    addedDate: new Date().toISOString()
+                });
+                saveData();
+                input.value = '';
+                updateShoppingList();
+            }
+        }
+
+        function checkShoppingItem(index) {
+            shoppingList[index].checked = true;
+            shoppingList[index].boughtBy = currentUser;
+            saveData();
+            updateShoppingList();
+            
+            // Show confetti for shopping
+            const confetti = document.createElement('div');
+            confetti.className = 'confetti';
+            confetti.textContent = '🛒';
+            document.body.appendChild(confetti);
+            setTimeout(() => confetti.remove(), 1000);
+        }
+
+        // Events
+        function updateEventsList() {
+            const listDiv = document.getElementById('eventsList');
+            
+            if (events.length === 0) {
+                listDiv.innerHTML = '<div class="empty-state">No upcoming events</div>';
+                return;
+            }
+            
+            // Sort by date
+            const sortedEvents = events.sort((a, b) => new Date(a.date) - new Date(b.date));
+            
+            listDiv.innerHTML = sortedEvents.map((event, index) => {
+                const eventDate = new Date(event.date);
+                const dateStr = eventDate.toLocaleDateString('en-US', { weekday: 'short', month: 'short', day: 'numeric' });
+                
+                return `
+                    <div class="event-card">
+                        <div style="display: flex; justify-content: space-between; align-items: center;">
+                            <div>
+                                <div class="event-date">${dateStr}</div>
+                                <div class="event-details">${event.person} - ${event.type} ${event.details ? `(${event.details})` : ''}</div>
+                            </div>
+                            ${event.person === currentUser ? 
+                                `<button class="task-btn" style="background: #ff3b30;" onclick="deleteEvent(${index})">Cancel</button>` : 
+                                ''
+                            }
+                        </div>
+                    </div>
+                `;
+            }).join('');
+        }
+
+        function deleteEvent(index) {
+            events.splice(index, 1);
+            saveData();
+            updateEventsList();
+            updateTodaysEvents();
+        }
+
+        function addEvent() {
+            const date = document.getElementById('eventDate').value;
+            const type = document.getElementById('eventType').value;
+            const details = document.getElementById('eventDetails').value;
+            
+            if (date && type) {
+                events.push({
+                    date: date,
+                    type: type,
+                    person: currentUser,
+                    details: details,
+                    addedDate: new Date().toISOString()
+                });
+                saveData();
+                
+                // Clear form
+                document.getElementById('eventDate').value = '';
+                document.getElementById('eventType').value = '';
+                document.getElementById('eventDetails').value = '';
+                
+                updateEventsList();
+            }
+        }
+
+        function quickAddEvent(type) {
+            const tomorrow = new Date();
+            tomorrow.setDate(tomorrow.getDate() + 1);
+            
+            const today = new Date();
+            
+            let date, eventType, details;
+            
+            switch(type) {
+                case 'WFH':
+                    date = tomorrow.toISOString().split('T')[0];
+                    eventType = 'Working from Home';
+                    break;
+                case 'Guest':
+                    date = today.toISOString().split('T')[0];
+                    eventType = 'Guest Staying';
+                    break;
+                case 'Out':
+                    date = today.toISOString().split('T')[0];
+                    eventType = 'Out for Dinner';
+                    break;
+            }
+            
+            events.push({
+                date: date,
+                type: eventType,
+                person: currentUser,
+                details: '',
+                addedDate: new Date().toISOString()
+            });
+            saveData();
+            
+            // Show confirmation
+            const btn = event.target;
+            const originalText = btn.textContent;
+            btn.textContent = 'Added! ✓';
+            setTimeout(() => {
+                btn.textContent = originalText;
+            }, 1500);
+        }
+
+        function cleanupOldEvents() {
+            const today = new Date();
+            today.setHours(0, 0, 0, 0);
+            
+            events = events.filter(event => new Date(event.date) >= today);
+            saveData();
+        }
+
+        // Chur System
+        function sendChur() {
+            const recipient = document.getElementById('churRecipient').value;
+            const message = document.getElementById('churMessage').value;
+            
+            if (recipient && recipient !== currentUser) {
+                churs.push({
+                    from: currentUser,
+                    to: recipient,
+                    message: message,
+                    date: new Date().toISOString()
+                });
+                saveData();
+                
+                // Clear form
+                document.getElementById('churRecipient').value = '';
+                document.getElementById('churMessage').value = '';
+                
+                // Show success and go back
+                const btn = event.target;
+                btn.textContent = 'Chur sent! 🤙';
+                setTimeout(() => {
+                    showScreen('dashboardScreen');
+                }, 1000);
+            }
+        }
+
+        function updateRecentChurs() {
+            const recentDiv = document.getElementById('recentChurs');
+            
+            // Get the last 3 churs sent by anyone
+            const recentChurs = churs.slice(-3).reverse();
+            
+            if (recentChurs.length === 0) {
+                recentDiv.innerHTML = '';
+                return;
+            }
+            
+            recentDiv.innerHTML = `
+                <h3>Recent Churs 🤙</h3>
+                ${recentChurs.map(chur => `
+                    <div class="chur-card">
+                        <div class="chur-from">${chur.from} → ${chur.to}</div>
+                        ${chur.message ? `<div class="chur-message">"${chur.message}"</div>` : ''}
+                    </div>
+                `).join('')}
+            `;
         }
 
         // Stats Screen
@@ -804,6 +1384,22 @@
             `).join('');
             
             document.getElementById('housemateOfMonth').textContent = sortedUsers[0][0];
+            
+            // Show all churs
+            const allChursDiv = document.getElementById('allChurs');
+            const allRecentChurs = churs.slice(-10).reverse();
+            
+            if (allRecentChurs.length === 0) {
+                allChursDiv.innerHTML = '<div class="empty-state">No churs yet - start spreading the love!</div>';
+                return;
+            }
+            
+            allChursDiv.innerHTML = allRecentChurs.map(chur => `
+                <div class="chur-card">
+                    <div class="chur-from">${chur.from} → ${chur.to}</div>
+                    ${chur.message ? `<div class="chur-message">"${chur.message}"</div>` : ''}
+                </div>
+            `).join('');
         }
 
         // Logout
@@ -812,17 +1408,38 @@
             showScreen('welcomeScreen');
         }
 
-        // Weekly rotation (runs on page load for demo)
-        function rotateWeeklyChores() {
-            const today = new Date().getDay();
-            if (today === 1) { // Monday
-                // Simple rotation logic - in real app would be more sophisticated
+        // Weekly rotation and cleanup
+        function weeklyMaintenance() {
+            const today = new Date();
+            const dayOfWeek = today.getDay();
+            
+            // Sunday night cleanup
+            if (dayOfWeek === 0) {
+                // Clear shopping list
+                shoppingList = shoppingList.filter(item => !item.checked);
+                
+                // Reset weekly chores
+                chores.forEach(chore => {
+                    if (chore.frequency === 'Weekly') {
+                        chore.completed = false;
+                    }
+                });
+                
+                saveData();
+            }
+            
+            // Monday rotation
+            if (dayOfWeek === 1) {
+                // Rotation logic would go here
                 console.log('Monday rotation would happen here');
             }
+            
+            // Clean up old events
+            cleanupOldEvents();
         }
 
-        // Check for Monday rotation
-        rotateWeeklyChores();
+        // Run maintenance
+        weeklyMaintenance();
     </script>
 </body>
 </html>
